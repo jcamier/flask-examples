@@ -1,5 +1,5 @@
 # Get Python libraries/packages
-from flask import Flask, request, render_template
+from flask import Flask, request, render_template, session, g
 from flask_sqlalchemy import SQLAlchemy
 from _datetime import datetime
 
@@ -23,17 +23,22 @@ app.config.update(
 db = SQLAlchemy(app)
 
 
+@app.before_request
+def some_function():
+    g.string = '<br> This code ran before any requests'
+
+
 @app.route('/index')  # Home page
 @app.route('/')
 def hello_world():
-    return "Hello, world!"
+    return "Hello, world! <br>" + g.string
 
 
 # General GET request
 @app.route('/new/')
 def query_strings(greeting='hello'):
     query_val = request.args.get('greeting', greeting)
-    return '<h1> the greeting is : {0} </h1>'.format(query_val)
+    return '<h1> the greeting is : {0} </h1>'.format(query_val) + g.string
 
 
 # GET request without query
@@ -127,6 +132,15 @@ def jinja_macros():
     }
 
     return render_template('using-macros.html', movies=movie_dict)
+
+
+# Session
+@app.route('/session')
+def session_data():
+    if 'name' not in session:
+        session['name'] = 'Jack'
+    return render_template('session.html', session=session, name=session['name'])
+
 
 
 class Publication(db.Model):
